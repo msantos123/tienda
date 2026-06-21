@@ -118,7 +118,7 @@
         </Link>
 
         <!-- Catálogo Público -->
-        <a :href="`/catalogo`" class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 hover:border-teal-800/50 transition group block cursor-pointer relative overflow-hidden">
+        <Link :href="route('tenant.catalog.index')" class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 hover:border-teal-800/50 transition group block cursor-pointer relative overflow-hidden">
           <div class="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
           <div class="flex items-center justify-between mb-4 relative z-10">
             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Público</span>
@@ -136,7 +136,7 @@
               </svg>
             </div>
           </div>
-        </a>
+        </Link>
       </div>
 
       <!-- Confirmation -->

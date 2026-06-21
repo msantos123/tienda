@@ -169,7 +169,7 @@ const addToCartAndNotify = () => {
 }
 
 const catalogUrl = computed(() => {
-  return window.location.origin + '/catalogo'
+  return route('tenant.catalog.index')
 })
 
 const discountPercent = computed(() => {

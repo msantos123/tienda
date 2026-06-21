@@ -267,9 +267,7 @@ const clearFilters = () => {
 }
 
 const productUrl = (slug) => {
-  // Construye la URL del detalle preservando el dominio del tenant
-  const base = window.location.origin
-  return `${base}/catalogo/${slug}`
+  return route('tenant.catalog.show', { slug })
 }
 </script>
 
