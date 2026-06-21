@@ -103,6 +103,15 @@ class TenancyServiceProvider extends ServiceProvider
         $this->mapRoutes();
 
         $this->makeTenancyMiddlewareHighestPriority();
+
+        // Inyectar automáticamente el parámetro 'tenant' en las URLs generadas por el backend
+        \Illuminate\Support\Facades\Event::listen(\Stancl\Tenancy\Events\TenancyInitialized::class, function (\Stancl\Tenancy\Events\TenancyInitialized $event) {
+            \Illuminate\Support\Facades\URL::defaults(['tenant' => $event->tenancy->tenant->id]);
+        });
+
+        \Illuminate\Support\Facades\Event::listen(\Stancl\Tenancy\Events\TenancyEnded::class, function (\Stancl\Tenancy\Events\TenancyEnded $event) {
+            \Illuminate\Support\Facades\URL::defaults(['tenant' => null]);
+        });
     }
 
     protected function bootEvents()

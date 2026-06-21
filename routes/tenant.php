@@ -4,23 +4,21 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Tenant\TenantAuthController;
 use Illuminate\Support\Facades\Route;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
+use Stancl\Tenancy\Middleware\InitializeTenancyByPath;
 
 /*
 |--------------------------------------------------------------------------
 | Tenant Routes
 |--------------------------------------------------------------------------
-| Estas rutas solo son accesibles desde un subdominio de tenant.
-| El middleware InitializeTenancyByDomain identifica el tenant
-| y cambia el contexto de la base de datos a su schema en PostgreSQL.
-*/
+| Estas rutas son accesibles usando la ruta del tenant como prefijo (ej: /vertice).
+| El middleware InitializeTenancyByPath identifica el tenant basándose en el
+| parámetro {tenant} y cambia el contexto de la base de datos a su schema en PostgreSQL.
+|*/
 
 Route::middleware([
     'web',
-    InitializeTenancyByDomain::class,
-    PreventAccessFromCentralDomains::class,
-])->group(function () {
+    InitializeTenancyByPath::class,
+])->prefix('{tenant}')->group(function () {
 
     // Ruta raíz del tenant
     Route::get('/', function () {

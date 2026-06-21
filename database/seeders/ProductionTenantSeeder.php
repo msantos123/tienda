@@ -14,14 +14,6 @@ class ProductionTenantSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Obtener el dominio central de producción desde la configuración
-        $centralDomain = parse_url(config('app.url'), PHP_URL_HOST);
-        
-        if (!$centralDomain || $centralDomain === 'localhost') {
-            $this->command->error("Por favor, asegúrate de que APP_URL esté configurado correctamente en tus variables de entorno antes de ejecutar este seeder.");
-            return;
-        }
-
         $tenantsData = [
             [
                 'id' => 'tenant1',
@@ -59,11 +51,6 @@ class ProductionTenantSeeder extends Seeder
                 'company_name' => $data['company_name'],
             ]);
 
-            // Asociar el dominio dinámico de producción (ej: id.tu-app.laravel.run)
-            $tenant->domains()->create([
-                'domain' => $data['id'] . '.' . $centralDomain,
-            ]);
-
             // Inicializar para crear el administrador dentro de su base de datos/esquema
             tenancy()->initialize($tenant);
 
@@ -75,7 +62,7 @@ class ProductionTenantSeeder extends Seeder
 
             tenancy()->end();
 
-            $this->command->info("Tenant {$data['id']} ({$data['company_name']}) creado con dominio: {$data['id']}.{$centralDomain}");
+            $this->command->info("Tenant {$data['id']} ({$data['company_name']}) creado con éxito.");
         }
     }
 }

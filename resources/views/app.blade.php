@@ -12,6 +12,11 @@
 
         <!-- Scripts -->
         @routes
+        <script>
+            window.Laravel = {
+                tenant: @json(tenancy()->initialized ? tenant('id') : null)
+            };
+        </script>
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
     </head>
