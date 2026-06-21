@@ -40,9 +40,9 @@ class TenantController extends Controller
             'company_name' => $request->company_name,
         ]);
 
-        // 2. Crear el dominio: id.localhost
+        // 2. Crear el dominio dinámicamente según el host central actual (ej: id.localhost o id.tu-app.laravel.run)
         $tenant->domains()->create([
-            'domain' => $request->id . '.localhost',
+            'domain' => $request->id . '.' . $request->getHost(),
         ]);
 
         // 3. Inicializar contexto del tenant para crear el usuario admin
