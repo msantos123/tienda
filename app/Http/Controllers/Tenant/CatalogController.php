@@ -69,16 +69,34 @@ class CatalogController extends Controller
 
     public function show(string $slug)
     {
-        $product = Product::with(['category', 'attributeValues.attribute'])
+        $product = Product::with([
+            'category.attributes',
+            'attributeValues.attribute',
+        ])
             ->where('slug', $slug)
             ->where('status', true)
             ->firstOrFail();
 
         $adminPhone = User::first()?->phone;
 
+        // Atributos interactivos para el comprador (select, textarea) de la categoría del producto
+        $buyerAttributes = collect();
+        if ($product->category) {
+            $buyerAttributes = $product->category->attributes
+                ->filter(fn($attr) => in_array($attr->type, ['select', 'textarea']))
+                ->map(fn($attr) => [
+                    'id'          => $attr->id,
+                    'name'        => $attr->name,
+                    'type'        => $attr->type,
+                    'options'     => $attr->options,
+                    'is_required' => (bool) $attr->pivot->is_required,
+                ])->values();
+        }
+
         return inertia('Tenant/Catalog/Show', [
-            'product'    => $product,
-            'adminPhone' => $adminPhone,
+            'product'         => $product,
+            'adminPhone'      => $adminPhone,
+            'buyerAttributes' => $buyerAttributes,
         ]);
     }
 }

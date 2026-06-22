@@ -21,20 +21,25 @@
             <div>
               <label class="block text-sm font-medium text-slate-300 mb-2">Tipo de Dato <span class="text-rose-500">*</span></label>
               <select v-model="form.type" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-fuchsia-500 focus:ring-1 focus:ring-fuchsia-500 transition appearance-none" required>
-                <option value="text">Texto Corto (Text)</option>
-                <option value="number">Número (Number)</option>
-                <option value="select">Selección Múltiple (Select/Opciones)</option>
-                <option value="date">Fecha (Date)</option>
-                <option value="boolean">Casilla de verificación (Boolean)</option>
+                <option value="text">Texto Corto — Información fija del producto (ej: Material, Color base)</option>
+                <option value="number">Número — Valor numérico fijo (ej: Peso, Ancho en cm)</option>
+                <option value="boolean">Sí/No — Característica binaria (ej: Es impermeable)</option>
+                <option value="select">Selección — El COMPRADOR elige una opción (ej: Talla, Color)</option>
+                <option value="textarea">Texto Libre — El COMPRADOR escribe algo (ej: Dedicatoria, Observaciones)</option>
               </select>
+              <p class="text-xs text-slate-500 mt-2">
+                <span v-if="form.type === 'select'">🛋️ El comprador elegirá entre las opciones que definas abajo.</span>
+                <span v-else-if="form.type === 'textarea'">✍️ El comprador escribirá texto libre al ver el producto en el catálogo.</span>
+                <span v-else>📄 El admin define el valor al subir el producto; el comprador solo lo ve como información.</span>
+              </p>
               <p v-if="form.errors.type" class="mt-2 text-sm text-rose-400">{{ form.errors.type }}</p>
             </div>
           </div>
 
           <div v-if="form.type === 'select'" class="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
             <label class="block text-sm font-medium text-slate-300 mb-2">Opciones Disponibles (Separadas por coma)</label>
-            <input v-model="optionsString" type="text" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-fuchsia-500 focus:ring-1 focus:ring-fuchsia-500 transition" placeholder="Rojo, Verde, Azul" />
-            <p class="text-xs text-slate-500 mt-2">Solo aplica si el tipo de dato es "Selección Múltiple".</p>
+            <input v-model="optionsString" type="text" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-fuchsia-500 focus:ring-1 focus:ring-fuchsia-500 transition" placeholder="S, M, L, XL" />
+            <p class="text-xs text-slate-500 mt-2">El comprador verá estas opciones como botones en el catálogo para elegir la que prefiera.</p>
           </div>
 
           <div>

@@ -208,25 +208,6 @@
               :class="{'border-rose-500': form.errors[`attributes.${attr.id}`]}"
             >
 
-            <!-- Render Type: select (Amigable para Móvil) -->
-            <div v-else-if="attr.type === 'select'" class="relative">
-              <button
-                type="button"
-                @click="openAttributeSelector(attr)"
-                class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left text-white text-base focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition flex items-center justify-between"
-                :class="{'border-rose-500': form.errors[`attributes.${attr.id}`]}"
-              >
-                <span v-if="form.attributes[attr.id]" class="font-medium text-white flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  {{ form.attributes[attr.id] }}
-                </span>
-                <span v-else class="text-slate-500">Selecciona una opción</span>
-                <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4 4 4-4"/>
-                </svg>
-              </button>
-            </div>
-
             <!-- Render Type: boolean -->
             <label v-else-if="attr.type === 'boolean'" class="flex items-center gap-4 p-4 bg-slate-950 border border-slate-800 rounded-2xl cursor-pointer">
               <div class="relative">
@@ -428,86 +409,6 @@
         </div>
       </div>
 
-      <!-- Modal / Bottom Sheet de Selección de Opción de Atributo -->
-      <div v-if="showAttributeModal && activeSelectAttribute" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-sm transition-opacity" @click="closeAttributeSelector">
-        <div 
-          class="w-full sm:max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl p-6 space-y-4 max-h-[85vh] sm:max-h-[75vh] flex flex-col shadow-2xl"
-          @click.stop
-        >
-          <!-- Indicador para arrastrar en móvil -->
-          <div class="w-12 h-1.5 bg-slate-800 rounded-full mx-auto sm:hidden mb-2"></div>
-
-          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 class="text-white font-bold text-lg">Selecciona {{ activeSelectAttribute.name }}</h3>
-            <button @click="closeAttributeSelector" class="p-1.5 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-white transition">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </button>
-          </div>
-
-          <!-- Buscador de Opciones (solo si hay más de 5 opciones) -->
-          <div v-if="activeSelectAttribute.options && activeSelectAttribute.options.length > 5" class="relative">
-            <input 
-              v-model="searchAttributeQuery" 
-              type="text" 
-              placeholder="Buscar opción..."
-              class="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-            >
-            <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-              </svg>
-            </div>
-            <button v-if="searchAttributeQuery" @click="searchAttributeQuery = ''" class="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-white">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </button>
-          </div>
-
-          <!-- Lista de Opciones -->
-          <div class="overflow-y-auto flex-1 space-y-2 pr-1 custom-scrollbar">
-            <button
-              v-for="option in filteredAttributeOptions"
-              :key="option"
-              type="button"
-              @click="selectAttributeOption(option)"
-              class="w-full flex items-center justify-between p-4 rounded-2xl border transition text-left"
-              :class="[
-                form.attributes[activeSelectAttribute.id] === option 
-                  ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 font-semibold shadow-lg shadow-emerald-500/5' 
-                  : 'bg-slate-950/60 border-slate-800/80 hover:border-slate-700 text-slate-300 hover:bg-slate-900/60'
-              ]"
-            >
-              <div class="flex items-center gap-3">
-                <div 
-                  class="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
-                  :class="[
-                    form.attributes[activeSelectAttribute.id] === option 
-                      ? 'bg-emerald-500/20 text-emerald-400' 
-                      : 'bg-slate-900 text-slate-400'
-                  ]"
-                >
-                  {{ option.substring(0, 2).toUpperCase() }}
-                </div>
-                <span>{{ option }}</span>
-              </div>
-              <svg v-if="form.attributes[activeSelectAttribute.id] === option" class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-              </svg>
-            </button>
-
-            <!-- Sin resultados -->
-            <div v-if="filteredAttributeOptions.length === 0" class="text-center py-8 text-slate-500">
-              <svg class="w-10 h-10 mx-auto text-slate-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              No se encontraron opciones
-            </div>
-          </div>
-        </div>
-      </div>
     </main>
   </div>
 </template>
@@ -728,6 +629,7 @@ const fetchAttributes = async () => {
   
   try {
     const response = await axios.get(route('tenant.api.categories.attributes', form.category_id))
+    // Solo cargamos los atributos del admin (text, number, boolean)
     attributes.value = response.data.attributes
     
     const newAttributesObj = {}

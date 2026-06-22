@@ -198,6 +198,8 @@ class ProductController extends Controller
 
     /**
      * API endpoint to get attributes for a specific category.
+     * Returns admin-editable attributes (text, number, boolean) separately
+     * from buyer-interactive attributes (select, textarea).
      */
     public function getAttributesByCategory($categoryId): JsonResponse
     {
@@ -205,18 +207,35 @@ class ProductController extends Controller
             $query->select('attributes.id', 'attributes.name', 'attributes.type', 'attributes.options');
         }])->findOrFail($categoryId);
 
-        $attributes = $category->attributes->map(function ($attribute) {
-            return [
-                'id' => $attribute->id,
-                'name' => $attribute->name,
-                'type' => $attribute->type,
-                'options' => $attribute->options,
-                'is_required' => (bool) $attribute->pivot->is_required,
-            ];
-        });
+        // Atributos que el ADMIN gestiona al crear el producto (características fijas)
+        $adminAttributes = $category->attributes
+            ->filter(fn($attr) => in_array($attr->type, ['text', 'number', 'boolean']))
+            ->map(function ($attribute) {
+                return [
+                    'id'          => $attribute->id,
+                    'name'        => $attribute->name,
+                    'type'        => $attribute->type,
+                    'options'     => $attribute->options,
+                    'is_required' => (bool) $attribute->pivot->is_required,
+                ];
+            })->values();
+
+        // Atributos que el COMPRADOR interactúa en el catálogo (select, textarea)
+        $buyerAttributes = $category->attributes
+            ->filter(fn($attr) => in_array($attr->type, ['select', 'textarea']))
+            ->map(function ($attribute) {
+                return [
+                    'id'          => $attribute->id,
+                    'name'        => $attribute->name,
+                    'type'        => $attribute->type,
+                    'options'     => $attribute->options,
+                    'is_required' => (bool) $attribute->pivot->is_required,
+                ];
+            })->values();
 
         return response()->json([
-            'attributes' => $attributes
+            'attributes'       => $adminAttributes,
+            'buyer_attributes' => $buyerAttributes,
         ]);
     }
 }

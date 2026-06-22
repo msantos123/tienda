@@ -27,7 +27,7 @@ class AttributeController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|string|in:text,number,select,date,boolean',
+            'type' => 'required|string|in:text,number,select,boolean,textarea',
             'options' => 'nullable|array',
             'category_ids' => 'nullable|array',
             'category_ids.*' => 'exists:categories,id'
@@ -59,7 +59,7 @@ class AttributeController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|string|in:text,number,select,date,boolean',
+            'type' => 'required|string|in:text,number,select,boolean,textarea',
             'options' => 'nullable|array',
             'category_ids' => 'nullable|array',
             'category_ids.*' => 'exists:categories,id'

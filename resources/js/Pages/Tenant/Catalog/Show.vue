@@ -101,19 +101,62 @@
           <p class="text-slate-300 text-sm leading-relaxed whitespace-pre-line">{{ product.description }}</p>
         </div>
 
-        <!-- Atributos dinámicos EAV -->
-        <div v-if="product.attribute_values && product.attribute_values.length > 0" class="bg-slate-900/50 border border-slate-800/60 rounded-2xl overflow-hidden">
-          <div class="px-4 py-3 border-b border-slate-800/60">
-            <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Especificaciones</h2>
+          <!-- Atributos dinámicos EAV (Solo lectura - información del producto) -->
+          <div v-if="product.attribute_values && product.attribute_values.length > 0" class="bg-slate-900/50 border border-slate-800/60 rounded-2xl overflow-hidden">
+            <div class="px-4 py-3 border-b border-slate-800/60">
+              <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Especificaciones</h2>
+            </div>
+            <div class="divide-y divide-slate-800/60">
+              <div v-for="av in product.attribute_values" :key="av.id" class="flex items-center justify-between px-4 py-3">
+                <span class="text-sm text-slate-400 font-medium">{{ av.attribute?.name }}</span>
+                <span class="text-sm text-white font-semibold text-right max-w-[55%]">{{ av.value }}</span>
+              </div>
+            </div>
           </div>
-          <div class="divide-y divide-slate-800/60">
-            <div v-for="av in product.attribute_values" :key="av.id" class="flex items-center justify-between px-4 py-3">
-              <span class="text-sm text-slate-400 font-medium">{{ av.attribute?.name }}</span>
-              <span class="text-sm text-white font-semibold text-right max-w-[55%]">{{ av.value }}</span>
+
+          <!-- Atributos Interactivos del Comprador (select y textarea) -->
+          <div v-if="buyerAttributes && buyerAttributes.length > 0" class="space-y-4">
+            <div v-for="attr in buyerAttributes" :key="attr.id">
+              <!-- SELECT: Chips de opciones -->
+              <div v-if="attr.type === 'select'">
+                <div class="flex items-center justify-between mb-2">
+                  <h2 class="text-sm font-semibold text-white">{{ attr.name }}</h2>
+                  <span v-if="attr.is_required" class="text-xs text-rose-400 font-medium">Requerido</span>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    v-for="option in (attr.options || [])" :key="option"
+                    type="button"
+                    @click="selectBuyerOption(attr.id, option)"
+                    class="px-4 py-2 rounded-full text-sm font-semibold border-2 transition-all duration-150"
+                    :class="buyerSelections[attr.id] === option
+                      ? 'bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-900/40'
+                      : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-indigo-600 hover:text-white'"
+                  >
+                    {{ option }}
+                  </button>
+                </div>
+                <p v-if="buyerErrors[attr.id]" class="text-rose-400 text-xs mt-1.5">{{ buyerErrors[attr.id] }}</p>
+              </div>
+
+              <!-- TEXTAREA: Campo de texto libre -->
+              <div v-else-if="attr.type === 'textarea'">
+                <div class="flex items-center justify-between mb-2">
+                  <h2 class="text-sm font-semibold text-white">{{ attr.name }}</h2>
+                  <span v-if="attr.is_required" class="text-xs text-rose-400 font-medium">Requerido</span>
+                </div>
+                <textarea
+                  v-model="buyerSelections[attr.id]"
+                  rows="3"
+                  :placeholder="`Escribe aqui tu ${attr.name.toLowerCase()}...`"
+                  class="w-full bg-slate-900 border-2 border-slate-700 rounded-2xl p-3 text-white text-sm focus:border-indigo-500 focus:outline-none transition resize-none"
+                  :class="{'border-rose-500': buyerErrors[attr.id]}"
+                ></textarea>
+                <p v-if="buyerErrors[attr.id]" class="text-rose-400 text-xs mt-1.5">{{ buyerErrors[attr.id] }}</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
     </main>
 
     <!-- ── BARRA DE ACCIONES FIJA EN LA PARTE INFERIOR ── -->
@@ -152,7 +195,28 @@ import { useCart } from '../../../composables/useCart'
 const props = defineProps({
   product: Object,
   adminPhone: String,
+  buyerAttributes: { type: Array, default: () => [] },
 })
+
+// Selecciones del comprador
+const buyerSelections = ref({})
+const buyerErrors = ref({})
+
+const selectBuyerOption = (attrId, option) => {
+  buyerSelections.value[attrId] = option
+  if (buyerErrors.value[attrId]) delete buyerErrors.value[attrId]
+}
+
+const validateBuyerSelections = () => {
+  const errors = {}
+  props.buyerAttributes.forEach(attr => {
+    if (attr.is_required && !buyerSelections.value[attr.id]) {
+      errors[attr.id] = `Por favor, selecciona o ingresa ${attr.name}.`
+    }
+  })
+  buyerErrors.value = errors
+  return Object.keys(errors).length === 0
+}
 
 const activeImage = ref(0)
 const quantity = ref(1)
@@ -161,7 +225,9 @@ const showAddedNotification = ref(false)
 const { addToCart, isCartOpen, totalItemsCount } = useCart()
 
 const addToCartAndNotify = () => {
-  addToCart(props.product, quantity.value)
+  if (!validateBuyerSelections()) return
+
+  addToCart(props.product, quantity.value, { ...buyerSelections.value })
   showAddedNotification.value = true
   setTimeout(() => {
     showAddedNotification.value = false
