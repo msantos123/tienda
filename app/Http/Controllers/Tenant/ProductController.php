@@ -51,7 +51,8 @@ class ProductController extends Controller
             // Handle image upload
             $images = [];
             if ($request->hasFile('image')) {
-                $path = $request->file('image')->store('products', 'public');
+                $disk = config('filesystems.default') === 's3' ? 's3' : 'public';
+                $path = $request->file('image')->store('products', $disk);
                 $images[] = $path; // We keep it as an array to respect the JSON column design
             }
 
@@ -125,10 +126,12 @@ class ProductController extends Controller
             if ($request->hasFile('image')) {
                 // Delete old image if it exists
                 if (!empty($images) && isset($images[0])) {
-                    Storage::disk('public')->delete($images[0]);
+                    $disk = config('filesystems.default') === 's3' ? 's3' : 'public';
+                    Storage::disk($disk)->delete($images[0]);
                 }
                 
-                $path = $request->file('image')->store('products', 'public');
+                $disk = config('filesystems.default') === 's3' ? 's3' : 'public';
+                $path = $request->file('image')->store('products', $disk);
                 $images = [$path]; // Replace with new image
             }
 
@@ -185,7 +188,8 @@ class ProductController extends Controller
     {
         try {
             if (!empty($product->images) && isset($product->images[0])) {
-                Storage::disk('public')->delete($product->images[0]);
+                $disk = config('filesystems.default') === 's3' ? 's3' : 'public';
+                Storage::disk($disk)->delete($product->images[0]);
             }
             
             $product->delete();

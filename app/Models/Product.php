@@ -32,8 +32,9 @@ class Product extends Model
         if (empty($this->images)) {
             return [];
         }
-        return array_map(function ($path) {
-            return \Illuminate\Support\Facades\Storage::disk('public')->url($path);
+        $disk = config('filesystems.default') === 's3' ? 's3' : 'public';
+        return array_map(function ($path) use ($disk) {
+            return \Illuminate\Support\Facades\Storage::disk($disk)->url($path);
         }, $this->images);
     }
 
