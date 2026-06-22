@@ -32,7 +32,7 @@ class Product extends Model
         if (empty($this->images)) {
             return [];
         }
-        $disk = !empty(config('filesystems.disks.s3.bucket')) ? 's3' : 'public';
+        $disk = env('AWS_BUCKET') ? 's3' : 'public';
         return array_map(function ($path) use ($disk) {
             return \Illuminate\Support\Facades\Storage::disk($disk)->url($path);
         }, $this->images);
