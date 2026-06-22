@@ -51,8 +51,8 @@ class ProductController extends Controller
             // Handle image upload
             $images = [];
             if ($request->hasFile('image')) {
-                $disk = env('AWS_BUCKET') ? 's3' : 'public';
-                $path = $request->file('image')->store('products', $disk);
+                // Usamos el disco por defecto (S3 en Laravel Cloud, public en local)
+                $path = $request->file('image')->storePublicly('products');
                 $images[] = $path; // We keep it as an array to respect the JSON column design
             }
 
@@ -126,12 +126,10 @@ class ProductController extends Controller
             if ($request->hasFile('image')) {
                 // Delete old image if it exists
                 if (!empty($images) && isset($images[0])) {
-                    $disk = env('AWS_BUCKET') ? 's3' : 'public';
-                    Storage::disk($disk)->delete($images[0]);
+                    Storage::delete($images[0]);
                 }
                 
-                $disk = env('AWS_BUCKET') ? 's3' : 'public';
-                $path = $request->file('image')->store('products', $disk);
+                $path = $request->file('image')->storePublicly('products');
                 $images = [$path]; // Replace with new image
             }
 
@@ -188,8 +186,7 @@ class ProductController extends Controller
     {
         try {
             if (!empty($product->images) && isset($product->images[0])) {
-                $disk = env('AWS_BUCKET') ? 's3' : 'public';
-                Storage::disk($disk)->delete($product->images[0]);
+                Storage::delete($product->images[0]);
             }
             
             $product->delete();
