@@ -26,7 +26,7 @@
       <!-- GALERÍA DE IMÁGENES -->
       <div class="relative bg-slate-900 aspect-square sm:aspect-video overflow-hidden">
         <template v-if="product.images && product.images.length > 0">
-          <img :src="`/storage/${product.images[activeImage]}`" :alt="product.name" class="w-full h-full object-contain transition-opacity duration-300"/>
+          <img :src="product.image_urls?.[activeImage] || `/storage/${product.images[activeImage]}`" :alt="product.name" class="w-full h-full object-contain transition-opacity duration-300"/>
           <!-- Thumbnails si hay más de 1 imagen -->
           <div v-if="product.images.length > 1" class="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
             <button v-for="(img, i) in product.images" :key="i" @click="activeImage = i" :class="['w-2 h-2 rounded-full transition', i === activeImage ? 'bg-indigo-400' : 'bg-slate-600 hover:bg-slate-400']"/>

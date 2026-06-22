@@ -25,6 +25,18 @@ class Product extends Model
         'images' => 'array',
     ];
 
+    protected $appends = ['image_urls'];
+
+    public function getImageUrlsAttribute()
+    {
+        if (empty($this->images)) {
+            return [];
+        }
+        return array_map(function ($path) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->url($path);
+        }, $this->images);
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);

@@ -97,7 +97,7 @@
             <label class="block text-slate-300 text-sm font-semibold mb-2">Imagen Principal (Max: 2MB)</label>
             
             <div v-if="product.images && product.images.length > 0 && !form.image" class="mb-4 relative w-32 h-32 rounded-xl overflow-hidden border border-slate-700">
-              <img :src="`/storage/${product.images[0]}`" class="w-full h-full object-cover">
+              <img :src="product.image_urls?.[0] || `/storage/${product.images[0]}`" class="w-full h-full object-cover">
               <div class="absolute inset-0 bg-slate-900/50 flex items-center justify-center opacity-0 hover:opacity-100 transition">
                 <span class="text-white text-xs font-bold">Imagen Actual</span>
               </div>
