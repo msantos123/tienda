@@ -22,11 +22,23 @@ class StoreProductRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Detectar si estamos en una actualización (ruta tiene el modelo product)
+        $product = $this->route('product');
+        $productId = $product?->id;
+
+        $skuRule  = $productId
+            ? \Illuminate\Validation\Rule::unique('products', 'sku')->ignore($productId)
+            : 'unique:products,sku';
+
+        $slugRule = $productId
+            ? \Illuminate\Validation\Rule::unique('products', 'slug')->ignore($productId)
+            : 'unique:products,slug';
+
         $rules = [
             'category_id' => ['required', 'exists:categories,id'],
-            'sku'         => ['required', 'string', 'unique:products,sku', 'max:255'],
+            'sku'         => ['required', 'string', $skuRule, 'max:255'],
             'name'        => ['required', 'string', 'max:255'],
-            'slug'        => ['required', 'string', 'unique:products,slug', 'max:255'],
+            'slug'        => ['required', 'string', $slugRule, 'max:255'],
             'description' => ['nullable', 'string'],
             'price'       => ['required', 'numeric', 'min:0'],
             'sale_price'  => ['nullable', 'numeric', 'min:0'],
