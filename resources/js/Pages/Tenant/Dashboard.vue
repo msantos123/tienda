@@ -45,7 +45,7 @@
       </div>
 
       <!-- Stats Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 mb-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 mb-8">
         <!-- Schema -->
         <div class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 hover:border-indigo-800/50 transition group">
           <div class="flex items-center justify-between mb-4">
@@ -69,6 +69,34 @@
           <p class="text-xl font-bold text-white font-mono">{{ tenantId }}.localhost</p>
           <p class="text-xs text-slate-500 mt-1">Subdominio único del tenant</p>
         </div>
+
+        <!-- WhatsApp Leads (CRM) -->
+        <Link :href="route('tenant.whatsapp-leads.index')" class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 hover:border-emerald-800/50 transition group block cursor-pointer relative overflow-hidden">
+          <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+          <div class="flex items-center justify-between mb-4 relative z-10">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Prospectos WhatsApp</span>
+            <div class="flex items-center gap-2">
+              <span v-if="activeLeadsCount > 0" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 animate-pulse">
+                {{ activeLeadsCount }} Activos
+              </span>
+              <div class="w-9 h-9 rounded-lg bg-emerald-950/60 border border-emerald-800/40 flex items-center justify-center group-hover:bg-emerald-900/40 transition">
+                <svg class="w-4.5 h-4.5 text-emerald-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.5-5.739-1.446L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.859.002-2.637-1.019-5.114-2.88-6.974-1.86-1.861-4.333-2.885-6.974-2.887-5.441 0-9.87 4.426-9.875 9.866-.002 1.776.471 3.51 1.37 5.054l-.896 3.277 3.37-.882z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="relative z-10">
+            <p class="text-xl font-bold text-white">Mini-CRM Ventas</p>
+            <p class="text-xs text-slate-500 mt-1">Monitorear estados de compra</p>
+            <div class="mt-4 flex items-center gap-1 text-xs font-semibold text-emerald-400 group-hover:text-emerald-300 transition-colors">
+              <span>Ver prospectos</span>
+              <svg class="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </Link>
 
         <!-- Products -->
         <Link :href="route('tenant.products.index')" class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 hover:border-emerald-800/50 transition group block cursor-pointer relative overflow-hidden">
@@ -165,6 +193,7 @@ const props = defineProps({
   user: Object,
   tenantId: String,
   productsCount: Number,
+  activeLeadsCount: Number,
 })
 
 const logout = () => {

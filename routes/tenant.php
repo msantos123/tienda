@@ -35,6 +35,7 @@ Route::middleware([
     // ─── Catálogo público (sin autenticación) ───────────────────────────────
     Route::get('/catalogo', [\App\Http\Controllers\Tenant\CatalogController::class, 'index'])->name('tenant.catalog.index');
     Route::get('/catalogo/{slug}', [\App\Http\Controllers\Tenant\CatalogController::class, 'show'])->name('tenant.catalog.show');
+    Route::post('/whatsapp-leads/store', [\App\Http\Controllers\Tenant\WhatsappLeadController::class, 'storePublic'])->name('tenant.whatsapp-leads.store-public');
 
 
     // Dashboard del tenant (protegido por auth)
@@ -44,8 +45,15 @@ Route::middleware([
                 'user'          => auth()->user(),
                 'tenantId'      => tenant('id'),
                 'productsCount' => \App\Models\Product::count(),
+                'activeLeadsCount' => \App\Models\WhatsappLead::whereIn('current_status', ['nuevo', 'en_conversacion'])->count(),
             ]);
         })->name('tenant.dashboard');
+
+        // Mini-CRM de WhatsApp Leads
+        Route::get('/whatsapp-leads', [\App\Http\Controllers\Tenant\WhatsappLeadController::class, 'index'])->name('tenant.whatsapp-leads.index');
+        Route::put('/whatsapp-leads/{lead}', [\App\Http\Controllers\Tenant\WhatsappLeadController::class, 'update'])->name('tenant.whatsapp-leads.update');
+        Route::post('/whatsapp-leads/{lead}/status', [\App\Http\Controllers\Tenant\WhatsappLeadController::class, 'updateStatus'])->name('tenant.whatsapp-leads.update-status');
+        Route::delete('/whatsapp-leads/{lead}', [\App\Http\Controllers\Tenant\WhatsappLeadController::class, 'destroy'])->name('tenant.whatsapp-leads.destroy');
 
         // Productos
         Route::get('/products', [\App\Http\Controllers\Tenant\ProductController::class, 'index'])->name('tenant.products.index');
