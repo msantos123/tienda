@@ -37,7 +37,7 @@ class HandleInertiaRequests extends Middleware
             'tenant' => tenancy()->initialized ? [
                 'id' => tenant('id'),
                 'name' => tenant('company_name'),
-                'logo' => tenant('company_logo') ? asset('storage/' . tenant('company_logo')) : null,
+                'logo' => tenant('company_logo') ? \Illuminate\Support\Facades\Storage::url(tenant('company_logo')) : null,
             ] : null,
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
