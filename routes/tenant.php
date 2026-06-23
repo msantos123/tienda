@@ -36,6 +36,7 @@ Route::middleware([
     Route::get('/catalogo', [\App\Http\Controllers\Tenant\CatalogController::class, 'index'])->name('tenant.catalog.index');
     Route::get('/catalogo/{slug}', [\App\Http\Controllers\Tenant\CatalogController::class, 'show'])->name('tenant.catalog.show');
     Route::post('/whatsapp-leads/store', [\App\Http\Controllers\Tenant\WhatsappLeadController::class, 'storePublic'])->name('tenant.whatsapp-leads.store-public');
+    Route::post('/whatsapp-leads/store-cart', [\App\Http\Controllers\Tenant\WhatsappLeadController::class, 'storeCartPublic'])->name('tenant.whatsapp-leads.store-cart-public');
 
 
     // Dashboard del tenant (protegido por auth)

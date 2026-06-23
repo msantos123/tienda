@@ -138,8 +138,104 @@ class WhatsappLeadController extends Controller
         $whatsappUrl = "https://wa.me/{$phone}?text=" . urlencode($message);
 
         return response()->json([
+            'success' => true,
             'whatsapp_url' => $whatsappUrl,
-            'reference' => $lead->reference,
+            'lead' => $lead,
+        ]);
+    }
+
+    /**
+     * Public endpoint to create multiple leads when checking out from the cart.
+     */
+    public function storeCartPublic(Request $request)
+    {
+        $validated = $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.buyer_choices' => 'nullable|array',
+        ]);
+
+        $adminPhone = User::first()?->phone;
+        if (!$adminPhone) {
+            return response()->json(['error' => 'La tienda no tiene configurado un número.'], 422);
+        }
+        $phone = preg_replace('/\D/', '', $adminPhone);
+
+        $leads = [];
+        $itemsWithPrice = [];
+        $itemsWithoutPrice = [];
+
+        foreach ($validated['items'] as $item) {
+            $product = Product::with('attributeValues.attribute')->findOrFail($item['product_id']);
+            $price = $product->sale_price ?? $product->price ?? 0;
+            $totalAmount = $price * $item['quantity'];
+
+            $lead = WhatsappLead::create([
+                'product_id' => $product->id,
+                'quantity' => $item['quantity'],
+                'buyer_choices' => $item['buyer_choices'] ?? null,
+                'current_status' => 'nuevo',
+                'total_amount' => $totalAmount,
+            ]);
+
+            $leads[] = $lead;
+
+            $itemData = [
+                'product' => $product,
+                'quantity' => $item['quantity'],
+                'lead' => $lead,
+                'subtotal' => $totalAmount,
+            ];
+
+            if ($product->show_price) {
+                $itemsWithPrice[] = $itemData;
+            } else {
+                $itemsWithoutPrice[] = $itemData;
+            }
+        }
+
+        // Generate WhatsApp Message
+        $msg = "Hola, me gustaría hacer un pedido:\n\n";
+
+        if (count($itemsWithPrice) > 0) {
+            $msg .= "*PRODUCTOS CON PRECIO FIJADO:*\n";
+            $total = 0;
+            foreach ($itemsWithPrice as $i) {
+                $total += $i['subtotal'];
+                $specs = "";
+                if (!empty($i['lead']->buyer_choices)) {
+                    $details = [];
+                    foreach ($i['lead']->buyer_choices as $k => $v) {
+                        if (!empty($v)) $details[] = "$k: $v";
+                    }
+                    if (count($details) > 0) $specs = " [" . implode(', ', $details) . "]";
+                }
+                $msg .= "- {$i['quantity']}x {$i['product']->name} (SKU: {$i['product']->sku}){$specs} (Ref: {$i['lead']->reference}) - Bs. " . number_format($i['subtotal'], 2) . "\n";
+            }
+            $msg .= "\n*TOTAL (Productos con precio): Bs. " . number_format($total, 2) . "*\n\n";
+        }
+
+        if (count($itemsWithoutPrice) > 0) {
+            $msg .= "¿Y qué precio tienen estos productos?\n*Detalle de los productos:*\n";
+            foreach ($itemsWithoutPrice as $i) {
+                $specs = "";
+                if (!empty($i['lead']->buyer_choices)) {
+                    $details = [];
+                    foreach ($i['lead']->buyer_choices as $k => $v) {
+                        if (!empty($v)) $details[] = "$k: $v";
+                    }
+                    if (count($details) > 0) $specs = " [" . implode(', ', $details) . "]";
+                }
+                $msg .= "- {$i['quantity']}x {$i['product']->name} (SKU: {$i['product']->sku}){$specs} (Ref: {$i['lead']->reference})\n";
+            }
+        }
+
+        $whatsappUrl = "https://wa.me/{$phone}?text=" . urlencode($msg);
+
+        return response()->json([
+            'success' => true,
+            'whatsapp_url' => $whatsappUrl,
         ]);
     }
 
