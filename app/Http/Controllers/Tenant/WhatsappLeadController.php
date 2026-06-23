@@ -16,6 +16,18 @@ class WhatsappLeadController extends Controller
      */
     public function index(Request $request)
     {
+        // Auto-migración al vuelo si la tabla no existe en la nube
+        try {
+            \App\Models\WhatsappLead::first();
+        } catch (\Throwable $e) {
+            // Si hay error (ej. falta tabla), corremos la migración de este tenant
+            \Illuminate\Support\Facades\Log::info("Migrando tenant bajo demanda por falta de tabla whatsapp_leads: " . tenant('id'));
+            \Illuminate\Support\Facades\Artisan::call('migrate', [
+                '--path' => 'database/migrations/tenant',
+                '--force' => true,
+            ]);
+        }
+
         $query = WhatsappLead::with('product');
 
         // Búsqueda por referencia, cliente o teléfono

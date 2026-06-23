@@ -41,11 +41,19 @@ Route::middleware([
     // Dashboard del tenant (protegido por auth)
     Route::middleware('auth')->group(function () {
         Route::get('/dashboard', function () {
+            // Intentar contar leads, si la tabla no existe (ej. falta migración) devolver 0
+            $activeLeadsCount = 0;
+            try {
+                $activeLeadsCount = \App\Models\WhatsappLead::whereIn('current_status', ['nuevo', 'en_conversacion'])->count();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('No se pudo contar WhatsappLeads en Dashboard: ' . $e->getMessage());
+            }
+
             return inertia('Tenant/Dashboard', [
                 'user'          => auth()->user(),
                 'tenantId'      => tenant('id'),
                 'productsCount' => \App\Models\Product::count(),
-                'activeLeadsCount' => \App\Models\WhatsappLead::whereIn('current_status', ['nuevo', 'en_conversacion'])->count(),
+                'activeLeadsCount' => $activeLeadsCount,
             ]);
         })->name('tenant.dashboard');
 
