@@ -6,12 +6,17 @@
       <div class="max-w-5xl mx-auto px-4 h-16 flex items-center gap-3">
         <!-- Logo / Nombre tenant -->
         <div class="flex-1 flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0">
+          <div v-if="$page.props.tenant?.logo" class="w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-md">
+            <img :src="$page.props.tenant.logo" class="w-full h-full object-cover" />
+          </div>
+          <div v-else class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
             </svg>
           </div>
-          <span class="font-bold text-white text-base">Catálogo</span>
+          <span class="font-bold text-white text-base truncate max-w-[160px] sm:max-w-xs">
+            {{ $page.props.tenant?.name || 'Catálogo' }}
+          </span>
         </div>
 
         <!-- Buscador desktop -->

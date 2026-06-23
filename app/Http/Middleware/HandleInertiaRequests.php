@@ -34,7 +34,11 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-            'tenant' => tenancy()->initialized ? tenant('id') : null,
+            'tenant' => tenancy()->initialized ? [
+                'id' => tenant('id'),
+                'name' => tenant('company_name'),
+                'logo' => tenant('company_logo') ? asset('storage/' . tenant('company_logo')) : null,
+            ] : null,
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error'   => fn () => $request->session()->get('error'),

@@ -11,7 +11,7 @@
       </div>
     </nav>
     <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         <!-- Perfil -->
         <Link :href="route('tenant.settings.profile')" class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 hover:border-blue-800/50 transition group block cursor-pointer">
           <div class="flex flex-col items-center text-center">
@@ -20,6 +20,17 @@
             </div>
             <p class="text-lg font-bold text-white">Perfil</p>
             <p class="text-xs text-slate-500 mt-1">Configuración de usuario</p>
+          </div>
+        </Link>
+
+        <!-- Ajustes de Empresa -->
+        <Link :href="route('tenant.settings.company.edit')" class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 hover:border-indigo-800/50 transition group block cursor-pointer">
+          <div class="flex flex-col items-center text-center">
+            <div class="w-14 h-14 rounded-full bg-indigo-950/60 border border-indigo-800/40 flex items-center justify-center group-hover:bg-indigo-900/40 transition mb-4">
+              <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            </div>
+            <p class="text-lg font-bold text-white">Empresa</p>
+            <p class="text-xs text-slate-500 mt-1">Nombre y logotipo</p>
           </div>
         </Link>
 

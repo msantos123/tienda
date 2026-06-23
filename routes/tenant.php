@@ -70,6 +70,10 @@ Route::middleware([
         Route::get('/products/{product}/edit', [\App\Http\Controllers\Tenant\ProductController::class, 'edit'])->name('tenant.products.edit');
         Route::put('/products/{product}', [\App\Http\Controllers\Tenant\ProductController::class, 'update'])->name('tenant.products.update');
         Route::delete('/products/{product}', [\App\Http\Controllers\Tenant\ProductController::class, 'destroy'])->name('tenant.products.destroy');
+
+        // Configuraciones
+        Route::get('/settings/company', [\App\Http\Controllers\Tenant\CompanySettingsController::class, 'edit'])->name('tenant.settings.company.edit');
+        Route::post('/settings/company', [\App\Http\Controllers\Tenant\CompanySettingsController::class, 'update'])->name('tenant.settings.company.update');
         
         // API Interna para Vue (Atributos dinámicos por categoría)
         Route::get('/api/categories/{category}/attributes', [\App\Http\Controllers\Tenant\ProductController::class, 'getAttributesByCategory'])->name('tenant.api.categories.attributes');
