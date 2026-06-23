@@ -48,7 +48,7 @@
             </div>
             
             <div class="flex items-center justify-between mt-2">
-              <span class="text-indigo-400 font-bold">${{ Number(product.price).toFixed(2) }}</span>
+              <span class="text-indigo-400 font-bold">Bs. {{ Number(product.price).toFixed(2) }}</span>
               <div class="flex items-center gap-2">
                 <Link :href="route('tenant.products.edit', product.id)" class="w-8 h-8 flex items-center justify-center bg-slate-800 rounded-full text-slate-300 hover:text-white hover:bg-slate-700 transition">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>

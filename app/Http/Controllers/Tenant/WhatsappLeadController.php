@@ -24,16 +24,16 @@ class WhatsappLeadController extends Controller
             
             // Automatización: Cambiar estado si se busca una referencia exacta y está en "nuevo"
             if (preg_match('/^REF-\d{4}$/i', $search)) {
-                $exactLead = WhatsappLead::where('reference', 'ilike', $search)->first();
+                $exactLead = WhatsappLead::where('reference', strtoupper($search))->first();
                 if ($exactLead && $exactLead->current_status === 'nuevo') {
                     $exactLead->update(['current_status' => 'en_conversacion']);
                 }
             }
 
             $query->where(function ($q) use ($search) {
-                $q->where('reference', 'ilike', "%{$search}%")
-                  ->orWhere('customer_name', 'ilike', "%{$search}%")
-                  ->orWhere('phone_number', 'ilike', "%{$search}%");
+                $q->whereRaw('LOWER(reference) LIKE ?', ['%' . strtolower($search) . '%'])
+                  ->orWhereRaw('LOWER(customer_name) LIKE ?', ['%' . strtolower($search) . '%'])
+                  ->orWhereRaw('LOWER(phone_number) LIKE ?', ['%' . strtolower($search) . '%']);
             });
         }
 
@@ -45,17 +45,23 @@ class WhatsappLeadController extends Controller
         // Paginación simple
         $leads = $query->latest()->paginate(15)->withQueryString();
 
-        // Agrupación por estados para saber el contador de cada pestaña
-        $counts = WhatsappLead::selectRaw('current_status, count(*) as total')
-            ->groupBy('current_status')
-            ->pluck('total', 'current_status')
-            ->toArray();
-
-        // Asegurar que todos los estados tengan un valor
+        // Agrupación por estados para saber el contador de cada pestaña (robusto para PostgreSQL)
         $statuses = ['nuevo', 'en_conversacion', 'esperando_pago', 'pagado_pendiente', 'entregado', 'archivado'];
-        $statusCounts = [];
-        foreach ($statuses as $status) {
-            $statusCounts[$status] = $counts[$status] ?? 0;
+        $statusCounts = array_fill_keys($statuses, 0);
+
+        try {
+            $rawCounts = WhatsappLead::selectRaw("current_status::text, count(*) as total")
+                ->groupBy('current_status')
+                ->get();
+            
+            foreach ($rawCounts as $row) {
+                if (isset($statusCounts[$row->current_status])) {
+                    $statusCounts[$row->current_status] = (int) $row->total;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Si falla el conteo (ej. tabla nueva sin datos), dejamos los valores en 0
+            \Illuminate\Support\Facades\Log::warning('WhatsappLeads count query failed: ' . $e->getMessage());
         }
 
         return Inertia::render('Tenant/WhatsappLeads/Index', [

@@ -232,14 +232,14 @@
               <label class="block text-slate-300 text-sm font-semibold mb-2">Precio *</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                  <span class="text-slate-500 font-bold">$</span>
+                  <span class="text-slate-500 font-bold text-xs">Bs.</span>
                 </div>
                 <input 
                   v-model="form.price" 
                   type="number" 
                   step="0.01"
                   placeholder="0.00" 
-                  class="w-full bg-slate-950 border border-slate-800 rounded-2xl py-4 pr-4 pl-8 text-white text-base focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                  class="w-full bg-slate-950 border border-slate-800 rounded-2xl py-4 pr-4 pl-12 text-white text-base focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
                   :class="{'border-rose-500': form.errors.price}"
                 >
               </div>
@@ -250,14 +250,14 @@
               <label class="block text-slate-300 text-sm font-semibold mb-2">Oferta</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                  <span class="text-slate-500 font-bold">$</span>
+                  <span class="text-slate-500 font-bold text-xs">Bs.</span>
                 </div>
                 <input 
                   v-model="form.sale_price" 
                   type="number" 
                   step="0.01"
                   placeholder="0.00" 
-                  class="w-full bg-slate-950 border border-slate-800 rounded-2xl py-4 pr-4 pl-8 text-white text-base focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                  class="w-full bg-slate-950 border border-slate-800 rounded-2xl py-4 pr-4 pl-12 text-white text-base focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
                 >
               </div>
             </div>

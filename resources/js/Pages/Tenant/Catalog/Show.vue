@@ -56,8 +56,8 @@
 
           <div class="flex items-baseline gap-3 mt-4">
             <template v-if="product.show_price">
-              <span class="text-3xl font-black text-white">${{ Number(product.sale_price || product.price).toFixed(2) }}</span>
-              <span v-if="product.sale_price" class="text-lg text-slate-500 line-through">${{ Number(product.price).toFixed(2) }}</span>
+              <span class="text-3xl font-black text-white">Bs. {{ Number(product.sale_price || product.price).toFixed(2) }}</span>
+              <span v-if="product.sale_price" class="text-lg text-slate-500 line-through">Bs. {{ Number(product.price).toFixed(2) }}</span>
               <span v-if="product.sale_price" class="px-2 py-0.5 bg-rose-500/20 text-rose-400 text-xs font-bold rounded-full">
                 {{ discountPercent }}% OFF
               </span>

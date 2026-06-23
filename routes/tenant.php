@@ -60,7 +60,7 @@ Route::middleware([
         Route::get('/products/create', [\App\Http\Controllers\Tenant\ProductController::class, 'create'])->name('tenant.products.create');
         Route::post('/products', [\App\Http\Controllers\Tenant\ProductController::class, 'store'])->name('tenant.products.store');
         Route::get('/products/{product}/edit', [\App\Http\Controllers\Tenant\ProductController::class, 'edit'])->name('tenant.products.edit');
-        Route::post('/products/{product}', [\App\Http\Controllers\Tenant\ProductController::class, 'update'])->name('tenant.products.update'); // Using POST with _method=PUT from Vue
+        Route::put('/products/{product}', [\App\Http\Controllers\Tenant\ProductController::class, 'update'])->name('tenant.products.update');
         Route::delete('/products/{product}', [\App\Http\Controllers\Tenant\ProductController::class, 'destroy'])->name('tenant.products.destroy');
         
         // API Interna para Vue (Atributos dinámicos por categoría)

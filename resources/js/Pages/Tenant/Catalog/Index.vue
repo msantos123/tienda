@@ -118,8 +118,8 @@
                   <h3 class="text-white font-semibold text-sm leading-tight mt-0.5 line-clamp-2">{{ product.name }}</h3>
                   <div class="mt-2 flex items-baseline gap-2">
                     <template v-if="product.show_price">
-                      <span class="text-white font-bold">${{ Number(product.sale_price || product.price).toFixed(2) }}</span>
-                      <span v-if="product.sale_price" class="text-slate-500 text-xs line-through">${{ Number(product.price).toFixed(2) }}</span>
+                      <span class="text-white font-bold">Bs. {{ Number(product.sale_price || product.price).toFixed(2) }}</span>
+                      <span v-if="product.sale_price" class="text-slate-500 text-xs line-through">Bs. {{ Number(product.price).toFixed(2) }}</span>
                     </template>
                     <template v-else>
                       <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider">A Cotizar</span>

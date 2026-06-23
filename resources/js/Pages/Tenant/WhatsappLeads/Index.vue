@@ -121,7 +121,7 @@
                 </div>
               </div>
               <div class="text-sm font-black text-emerald-400 mt-1">
-                Total: ${{ Number(lead.total_amount).toFixed(2) }}
+                Total: Bs. {{ Number(lead.total_amount).toFixed(2) }}
               </div>
             </div>
           </div>
@@ -273,7 +273,7 @@
 
           <!-- Monto Venta -->
           <div>
-            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Monto de Venta ($)</label>
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Monto de Venta (Bs.)</label>
             <input
               v-model="editForm.total_amount"
               type="number"
