@@ -1,16 +1,17 @@
 FROM php:8.2-cli
 
-# Instalar dependencias del sistema y extensiones PHP
+# Instalar dependencias del sistema requeridas para GD, Zip y PostgreSQL
 RUN apt-get update && apt-get install -y \
     git \
     curl \
     libpng-dev \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
+    libpq-dev \
     zip \
     unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql gd bcmath \
+    && docker-php-ext-install pdo_mysql pdo_pgsql pgsql gd bcmath \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copiar ejecutable de Composer
