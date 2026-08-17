@@ -1,6 +1,14 @@
+# 1. Copiar Node.js y NPM directamente desde la imagen oficial
+FROM node:20-alpine AS node_base
+
+# 2. Imagen principal PHP
 FROM php:8.2-fpm
 
-# 1. Instalar dependencias del sistema y Node.js/NPM
+# Copiar Node y NPM desde la etapa anterior
+COPY --from=node_base /usr/local/bin /usr/local/bin
+COPY --from=node_base /usr/local/lib/node_modules /usr/local/lib/node_modules
+
+# Instalar dependencias del sistema necesarias
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
@@ -8,25 +16,22 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     curl \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs
+    && rm -rf /var/lib/apt/lists/*
 
-# 2. Instalar Composer
+# Instalar Composer desde la imagen oficial
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# 3. Copiar el código del proyecto
+# Copiar archivos del proyecto
 COPY . .
 
-# 4. Instalar dependencias de PHP y Node.js
+# Instalar dependencias de PHP y Frontend
 RUN composer install --no-dev --optimize-autoloader
 RUN npm install
-
-# 5. Compilar los assets con Vite (crea public/build/manifest.json)
 RUN npm run build
 
-# Permisos de almacenamiento
+# Ajustar permisos de directorios
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 EXPOSE 8000
