@@ -19,6 +19,7 @@ return [
     'central_domains' => [
         '127.0.0.1',
         'localhost',
+        '66.187.4.110.sslip.io',
         parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST),
     ],
 
@@ -64,16 +65,16 @@ return [
             'mariadb' => Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager::class,
             // 'pgsql' => Stancl\Tenancy\TenantDatabaseManagers\PostgreSQLDatabaseManager::class,
 
-        /**
-         * Use this database manager for MySQL to have a DB user created for each tenant database.
-         * You can customize the grants given to these users by changing the $grants property.
-         */
+            /**
+             * Use this database manager for MySQL to have a DB user created for each tenant database.
+             * You can customize the grants given to these users by changing the $grants property.
+             */
             // 'mysql' => Stancl\Tenancy\TenantDatabaseManagers\PermissionControlledMySQLDatabaseManager::class,
 
-        /**
-         * Disable the pgsql manager above, and enable the one below if you
-         * want to separate tenant DBs by schemas rather than databases.
-         */
+            /**
+             * Disable the pgsql manager above, and enable the one below if you
+             * want to separate tenant DBs by schemas rather than databases.
+             */
             'pgsql' => Stancl\Tenancy\TenantDatabaseManagers\PostgreSQLSchemaManager::class, // Separate by schema instead of database
         ],
     ],
