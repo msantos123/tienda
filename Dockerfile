@@ -1,30 +1,34 @@
-FROM php:8.2-cli
+FROM php:8.2-fpm
 
-# Instalar dependencias del sistema requeridas para GD, Zip y PostgreSQL
+# 1. Instalar dependencias del sistema y Node.js/NPM
 RUN apt-get update && apt-get install -y \
     git \
-    curl \
-    libpng-dev \
-    libfreetype6-dev \
-    libjpeg62-turbo-dev \
-    libpq-dev \
-    zip \
     unzip \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql pdo_pgsql pgsql gd bcmath \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    curl \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
 
-# Copiar ejecutable de Composer
+# 2. Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copiar el proyecto
+# 3. Copiar el código del proyecto
 COPY . .
 
-# Instalar dependencias de Laravel
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# 4. Instalar dependencias de PHP y Node.js
+RUN composer install --no-dev --optimize-autoloader
+RUN npm install
+
+# 5. Compilar los assets con Vite (crea public/build/manifest.json)
+RUN npm run build
+
+# Permisos de almacenamiento
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 EXPOSE 8000
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+CMD ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000"]
