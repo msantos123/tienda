@@ -1,28 +1,25 @@
-# 1. Etapa de Node para compilar assets (Vite / Inertia)
-FROM node:20-slim AS node_builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
-
-# 2. Etapa principal PHP + Nginx
 FROM richarvey/nginx-php-fpm:3.1.6
 
 WORKDIR /var/www/html
 
-# Copiar código y assets compilados
-COPY . .
-COPY --from=node_builder /app/public/build ./public/build
+# 1. Instalar Node.js 20 en la misma imagen
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
 
-# Configurar variables de entorno para Nginx
+# 2. Copiar todo el proyecto
+COPY . .
+
+# 3. Configurar variables básicas para Nginx
 ENV WEBROOT=/var/www/html/public
 ENV PHP_ERRORS_STDERR=1
 
-# Instalar dependencias de PHP vía Composer
+# 4. Instalar dependencias PHP (genera la carpeta /vendor necesaria para Ziggy)
 RUN composer install --no-dev --optimize-autoloader
 
-# Ajustar permisos para storage y cache
+# 5. Instalar dependencias Node y compilar assets
+RUN npm install && npm run build
+
+# 6. Permisos de directorios de almacenamiento
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 EXPOSE 80
