@@ -7,7 +7,7 @@ COPY . .
 RUN npm run build
 
 # 2. Etapa principal PHP + Nginx
-FROM richarvey/nginx-php-fpm:php82
+FROM richarvey/nginx-php-fpm:3.1.6
 
 WORKDIR /var/www/html
 
