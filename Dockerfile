@@ -1,4 +1,4 @@
-# 1. Etapa PHP: Instala dependencias de Composer (crea la carpeta /vendor para Ziggy)
+# 1. Etapa PHP: Instala dependencias de Composer
 FROM richarvey/nginx-php-fpm:3.1.6 AS php_base
 WORKDIR /app
 COPY . .
@@ -9,7 +9,6 @@ FROM node:20-alpine AS node_builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
-# Copiamos el código fuente Y la carpeta vendor generada en el paso anterior
 COPY . .
 COPY --from=php_base /app/vendor ./vendor
 RUN npm run build
@@ -20,6 +19,8 @@ WORKDIR /var/www/html
 
 ENV WEBROOT=/var/www/html/public
 ENV PHP_ERRORS_STDERR=1
+# ESTA LÍNEA EVITA EL ERROR DE PRESTISSIMO AL ARRANCAR
+ENV SKIP_COMPOSER=1 
 
 # Copiar el proyecto con vendor y los assets ya compilados
 COPY --from=php_base /app /var/www/html
