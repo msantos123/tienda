@@ -1,6 +1,6 @@
-FROM php:8.2-fpm
+FROM php:8.2-cli
 
-# Instalar dependencias del sistema requeridas para GD y Zip
+# Instalar dependencias del sistema y extensiones PHP
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -21,8 +21,9 @@ WORKDIR /var/www/html
 # Copiar el proyecto
 COPY . .
 
-# Instalar dependencias de Laravel optimizadas para producción
+# Instalar dependencias de Laravel
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-EXPOSE 9000
-CMD ["php-fpm"]
+EXPOSE 8000
+
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
