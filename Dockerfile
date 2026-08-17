@@ -1,5 +1,5 @@
 # 1. Copiar Node.js y NPM directamente desde la imagen oficial
-FROM node:20-alpine AS node_base
+FROM node:20-slim AS node_base
 
 # 2. Imagen principal PHP
 FROM php:8.2-fpm
