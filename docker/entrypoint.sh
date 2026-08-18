@@ -7,6 +7,9 @@ echo "======================================"
 
 cd /var/www/html
 
+echo "[0/5] Detectando socket PHP-FPM..."
+grep -r "^listen" /etc/php*/php-fpm.d/ /etc/php-fpm.d/ 2>/dev/null || echo "  (no se pudo leer config fpm)"
+
 echo "[1/5] Limpiando cache antigua..."
 php artisan optimize:clear --quiet 2>/dev/null || true
 
