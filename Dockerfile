@@ -20,6 +20,7 @@ WORKDIR /var/www/html
 ENV WEBROOT=/var/www/html/public
 ENV SKIP_COMPOSER=1
 ENV PHP_ERRORS_STDERR=1
+ENV PHP_MEM_LIMIT=256M
 # Sesiones en archivo para evitar error "relation sessions does not exist"
 # en el primer arranque (antes de que migrate cree la tabla sessions)
 ENV SESSION_DRIVER=file
