@@ -30,4 +30,12 @@ COPY --from=node_builder /app/public/build /var/www/html/public/build
 # Configuración de permisos
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-EXPOSE 80
+# Optimizar Laravel para producción (caché de rutas, config y vistas)
+# Nota: Las variables de entorno reales las inyecta Coolify en runtime.
+# config:cache congela env() → asegúrate de usar config('key') en tu código de app.
+RUN php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache \
+    && php artisan event:cache
+
+EXPOSE 80

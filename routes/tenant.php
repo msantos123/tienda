@@ -18,7 +18,7 @@ use Stancl\Tenancy\Middleware\InitializeTenancyByPath;
 Route::middleware([
     'web',
     InitializeTenancyByPath::class,
-])->prefix('{tenant}')->group(function () {
+])->prefix('{tenant}')->where(['tenant' => '^(?!admin|api|up|storage)[a-zA-Z0-9_-]+$'])->group(function () {
 
     // Ruta raíz del tenant
     Route::get('/', function () {
@@ -51,8 +51,8 @@ Route::middleware([
             }
 
             return inertia('Tenant/Dashboard', [
-                'user'          => auth()->user(),
-                'tenantId'      => tenant('id'),
+                'user' => auth()->user(),
+                'tenantId' => tenant('id'),
                 'productsCount' => \App\Models\Product::count(),
                 'activeLeadsCount' => $activeLeadsCount,
             ]);
@@ -75,7 +75,7 @@ Route::middleware([
         // Configuraciones
         Route::get('/settings/company', [\App\Http\Controllers\Tenant\CompanySettingsController::class, 'edit'])->name('tenant.settings.company.edit');
         Route::post('/settings/company', [\App\Http\Controllers\Tenant\CompanySettingsController::class, 'update'])->name('tenant.settings.company.update');
-        
+
         // API Interna para Vue (Atributos dinámicos por categoría)
         Route::get('/api/categories/{category}/attributes', [\App\Http\Controllers\Tenant\ProductController::class, 'getAttributesByCategory'])->name('tenant.api.categories.attributes');
 
@@ -92,7 +92,7 @@ Route::middleware([
 
         Route::put('/settings/profile', function (\Illuminate\Http\Request $request) {
             $validated = $request->validate([
-                'name'  => 'required|string|max:255',
+                'name' => 'required|string|max:255',
                 'phone' => 'nullable|string|max:30',
             ]);
             auth()->user()->update($validated);
