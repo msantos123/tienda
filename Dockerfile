@@ -29,11 +29,11 @@ COPY --from=php_base /app /var/www/html
 COPY --from=node_builder /app/public/build /var/www/html/public/build
 
 # ── Nginx ──────────────────────────────────────────────────────────────────
-# PROBLEMA RAÍZ: /start.sh nunca corre (supervisord es PID 1 directo),
-# por lo que la imagen nunca procesa sus plantillas de Nginx.
-# La config por defecto NO tiene try_files → Nginx devuelve 404 sin llegar a PHP.
-# SOLUCIÓN: proveer nuestra propia config con try_files /index.php correcto.
-COPY docker/nginx-laravel.conf /etc/nginx/sites-enabled/default.conf
+# Reemplazamos nginx.conf completo: la imagen incluye sites-enabled FUERA del
+# bloque http{}, por lo que server{} era inválido. Con un nginx.conf propio
+# controlamos el contexto correcto y garantizamos try_files para Laravel.
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+RUN sed -i 's/\r//' /etc/nginx/nginx.conf
 
 # ── Entrypoint ─────────────────────────────────────────────────────────────
 # Corre artisan (config:cache, route:cache, migrate) con las env vars reales
@@ -47,5 +47,6 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 
 EXPOSE 80
 
-CMD ["/entrypoint.sh"]
+# Usar 'sh' explícito: Alpine no tiene /bin/bash instalado por defecto
+CMD ["sh", "/entrypoint.sh"]
 
