@@ -1,4 +1,11 @@
 <template>
+  <Head>
+    <title>{{ product.name }} — {{ $page.props.tenant?.name || 'Catálogo' }}</title>
+    <meta name="description" :content="product.description ? product.description.substring(0, 160) : `Compra ${product.name} al mejor precio.`" />
+    <meta property="og:title" :content="product.name" />
+    <meta property="og:image" :content="product.image_urls?.[0] || (product.images?.length ? `/storage/${product.images[0]}` : '')" />
+  </Head>
+
   <div class="min-h-screen bg-slate-950 text-slate-100 pb-28">
 
     <!-- HEADER -->
@@ -274,6 +281,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { Head } from '@inertiajs/vue3'
 import axios from 'axios'
 import CartDrawer from '../../../Components/Tenant/CartDrawer.vue'
 import { useCart } from '../../../composables/useCart'
