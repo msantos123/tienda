@@ -243,7 +243,15 @@ const { addToCart, isCartOpen, totalItemsCount } = useCart()
 const addToCartAndNotify = () => {
   if (!validateBuyerSelections()) return
 
-  addToCart(props.product, quantity.value, { ...buyerSelections.value })
+  // Formatear selecciones con nombres legibles para incluirlas en el carrito
+  const buyerChoicesFormatted = {}
+  props.buyerAttributes.forEach(attr => {
+    if (buyerSelections.value[attr.id]) {
+      buyerChoicesFormatted[attr.name] = buyerSelections.value[attr.id]
+    }
+  })
+
+  addToCart(props.product, quantity.value, buyerChoicesFormatted)
   showAddedNotification.value = true
   setTimeout(() => {
     showAddedNotification.value = false

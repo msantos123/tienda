@@ -5,81 +5,131 @@
       <div v-if="isCartOpen" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" @click="isCartOpen = false"></div>
     </Transition>
 
-    <!-- Drawer lateral -->
+    <!-- Drawer: ocupa toda la pantalla en móvil, ancho fijo en desktop -->
     <Transition name="slide">
-      <div v-if="isCartOpen" class="fixed inset-y-0 right-0 z-50 w-full md:w-96 bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col">
+      <div v-if="isCartOpen" class="fixed inset-y-0 right-0 z-50 w-full md:w-[420px] bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col">
+
         <!-- Header -->
-        <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90 backdrop-blur-md">
-          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+        <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between shrink-0">
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
             <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             Mi Carrito
+            <span v-if="totalItemsCount > 0" class="ml-1 px-2 py-0.5 bg-indigo-600 text-white text-xs font-bold rounded-full">{{ totalItemsCount }}</span>
           </h2>
-          <button @click="isCartOpen = false" class="text-slate-400 hover:text-white transition p-2 bg-slate-800 rounded-xl">
+          <button @click="isCartOpen = false" class="text-slate-400 hover:text-white transition p-2 bg-slate-800 hover:bg-slate-700 rounded-xl">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
 
         <!-- Lista de productos -->
-        <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
-          <div v-if="cartItems.length === 0" class="h-full flex flex-col items-center justify-center text-center space-y-4">
+        <div class="flex-1 overflow-y-auto p-4 space-y-3">
+          <!-- Carrito vacío -->
+          <div v-if="cartItems.length === 0" class="h-full flex flex-col items-center justify-center text-center space-y-4 py-16">
             <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center">
               <svg class="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
             </div>
-            <p class="text-slate-400">Tu carrito está vacío.</p>
-            <button @click="isCartOpen = false" class="px-6 py-2 bg-indigo-600/20 text-indigo-400 font-bold rounded-xl text-sm">Explorar Catálogo</button>
+            <div>
+              <p class="text-slate-300 font-semibold">Tu carrito está vacío</p>
+              <p class="text-slate-500 text-sm mt-1">Agrega productos del catálogo</p>
+            </div>
+            <button @click="isCartOpen = false" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm transition">
+              Explorar Catálogo
+            </button>
           </div>
 
-          <div v-else class="space-y-4">
-            <div v-for="item in cartItems" :key="item.product.id" class="bg-slate-950 border border-slate-800 rounded-2xl p-3 flex gap-3 relative">
-              <!-- Botón Eliminar -->
-              <button @click="removeFromCart(item.product.id)" class="absolute -top-2 -right-2 bg-slate-800 text-rose-400 hover:bg-rose-500 hover:text-white w-6 h-6 rounded-full flex items-center justify-center border border-slate-700 transition">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
+          <!-- Ítems del carrito -->
+          <div v-for="(item, index) in cartItems" :key="index" class="bg-slate-950 border border-slate-800/80 rounded-2xl p-3 flex gap-3 relative group">
+            <!-- Imagen -->
+            <div class="w-20 h-20 bg-slate-800 rounded-xl overflow-hidden shrink-0">
+              <img
+                v-if="item.product.images && item.product.images.length > 0"
+                :src="item.product.image_urls?.[0] || `/storage/${item.product.images[0]}`"
+                :alt="item.product.name"
+                class="w-full h-full object-cover"
+              />
+              <div v-else class="w-full h-full flex items-center justify-center">
+                <svg class="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              </div>
+            </div>
 
-              <div class="w-16 h-16 bg-slate-800 rounded-xl overflow-hidden shrink-0">
-                <img v-if="item.product.images && item.product.images.length > 0" :src="item.product.image_urls?.[0] || `/storage/${item.product.images[0]}`" class="w-full h-full object-cover"/>
-                <svg v-else class="w-full h-full p-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <!-- Info -->
+            <div class="flex-1 min-w-0 flex flex-col justify-between">
+              <div>
+                <h4 class="text-sm font-bold text-white leading-tight line-clamp-2 pr-6">{{ item.product.name }}</h4>
+                <p class="text-[10px] text-slate-500 font-mono mt-0.5">{{ item.product.sku }}</p>
+
+                <!-- Selecciones del comprador (talla, color, etc.) -->
+                <div v-if="item.buyer_choices && Object.keys(item.buyer_choices).length > 0" class="flex flex-wrap gap-1 mt-1.5">
+                  <span
+                    v-for="(value, key) in item.buyer_choices"
+                    :key="key"
+                    class="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[10px] font-semibold rounded-full"
+                  >
+                    {{ key }}: {{ value }}
+                  </span>
+                </div>
               </div>
 
-              <div class="flex-1 min-w-0 flex flex-col justify-between">
-                <div>
-                  <h4 class="text-sm font-bold text-white leading-tight line-clamp-2">{{ item.product.name }}</h4>
-                  <p class="text-xs text-slate-500 font-mono mt-0.5">{{ item.product.sku }}</p>
+              <!-- Cantidad y precio -->
+              <div class="flex items-center justify-between mt-2">
+                <div class="flex items-center gap-0.5 bg-slate-900 border border-slate-800 rounded-lg p-0.5">
+                  <button
+                    @click="updateQuantity(index, item.quantity - 1)"
+                    class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-md transition text-base font-bold"
+                  >−</button>
+                  <span class="text-sm font-bold w-7 text-center text-white">{{ item.quantity }}</span>
+                  <button
+                    @click="updateQuantity(index, item.quantity + 1)"
+                    :disabled="item.quantity >= item.product.stock"
+                    class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-md transition disabled:opacity-30 text-base font-bold"
+                  >+</button>
                 </div>
-                
-                <div class="flex items-center justify-between mt-2">
-                  <div class="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-lg p-0.5">
-                    <button @click="updateQuantity(item.product.id, item.quantity - 1)" class="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-md">-</button>
-                    <span class="text-xs font-bold w-6 text-center text-white">{{ item.quantity }}</span>
-                    <button @click="updateQuantity(item.product.id, item.quantity + 1)" :disabled="item.quantity >= item.product.stock" class="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-md disabled:opacity-50">+</button>
-                  </div>
-                  
-                  <div class="text-right">
-                    <p v-if="item.product.show_price" class="text-sm font-bold text-emerald-400">
-                      ${{ (Number(item.product.sale_price || item.product.price) * item.quantity).toFixed(2) }}
-                    </p>
-                    <p v-else class="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">A Cotizar</p>
-                  </div>
+
+                <div class="text-right">
+                  <p v-if="item.product.show_price" class="text-sm font-bold text-white">
+                    Bs. {{ (Number(item.product.sale_price || item.product.price) * item.quantity).toFixed(2) }}
+                  </p>
+                  <p v-else class="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">A Cotizar</p>
                 </div>
               </div>
             </div>
+
+            <!-- Botón eliminar -->
+            <button
+              @click="removeFromCart(index)"
+              class="absolute top-2.5 right-2.5 w-6 h-6 flex items-center justify-center text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition opacity-0 group-hover:opacity-100"
+              title="Eliminar"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
           </div>
         </div>
 
         <!-- Footer / Checkout -->
-        <div v-if="cartItems.length > 0" class="p-6 border-t border-slate-800 bg-slate-900/90 backdrop-blur-md space-y-4">
-          <div class="flex items-end justify-between">
-            <span class="text-slate-400 text-sm font-semibold">Total estimado:</span>
-            <div class="text-right">
-              <span class="text-2xl font-black text-white">${{ totalAmountWithPrice.toFixed(2) }}</span>
-              <p v-if="hasItemsWithoutPrice" class="text-[10px] text-indigo-400 font-bold uppercase mt-1 tracking-wider">+ Productos a cotizar</p>
+        <div v-if="cartItems.length > 0" class="p-4 border-t border-slate-800 bg-slate-900/95 backdrop-blur-md space-y-3 shrink-0">
+          <!-- Resumen de totales -->
+          <div class="flex items-end justify-between px-1">
+            <div>
+              <p class="text-slate-400 text-xs">Total estimado</p>
+              <p v-if="hasItemsWithoutPrice" class="text-[10px] text-indigo-400 font-semibold mt-0.5">+ Productos a cotizar</p>
             </div>
+            <span class="text-2xl font-black text-white">Bs. {{ totalAmountWithPrice.toFixed(2) }}</span>
           </div>
 
-          <button @click="submitCart" :disabled="isSubmitting" class="w-full flex items-center justify-center gap-2 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl shadow-lg shadow-emerald-900/30 transition text-sm disabled:opacity-50">
-            <svg v-if="isSubmitting" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            <svg v-else class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-            {{ isSubmitting ? 'Procesando...' : 'Enviar pedido por WhatsApp' }}
+          <!-- Botón enviar por WhatsApp -->
+          <button
+            @click="submitCart"
+            :disabled="isSubmitting"
+            class="w-full flex items-center justify-center gap-2.5 py-4 bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none text-white font-extrabold rounded-2xl shadow-lg shadow-emerald-900/30 transition-all text-sm"
+          >
+            <svg v-if="isSubmitting" class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <svg v-else class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            <span>{{ isSubmitting ? 'Procesando...' : 'Enviar pedido por WhatsApp' }}</span>
           </button>
         </div>
       </div>
@@ -92,46 +142,39 @@ import { ref, computed } from 'vue'
 import { useCart } from '../../composables/useCart'
 import axios from 'axios'
 
-const props = defineProps({
-  adminPhone: String
-})
+defineProps({ adminPhone: String })
 
 const { cartItems, totalItemsCount, removeFromCart, updateQuantity, clearCart, isCartOpen } = useCart()
 
 const isSubmitting = ref(false)
 
-const totalAmountWithPrice = computed(() => {
-  return cartItems.value
+const totalAmountWithPrice = computed(() =>
+  cartItems.value
     .filter(item => item.product.show_price)
     .reduce((sum, item) => sum + (Number(item.product.sale_price || item.product.price) * item.quantity), 0)
-})
+)
 
-const hasItemsWithoutPrice = computed(() => {
-  return cartItems.value.some(item => !item.product.show_price)
-})
+const hasItemsWithoutPrice = computed(() =>
+  cartItems.value.some(item => !item.product.show_price)
+)
 
 const submitCart = async () => {
   if (cartItems.value.length === 0) return
   isSubmitting.value = true
 
   const payload = {
-    items: cartItems.value.map(item => {
-      // Si el producto tiene especificaciones u otras opciones elegidas (aunque aquí en el carrito no hay selectors aún)
-      // se mandarían aquí. Por ahora, pasamos vacío.
-      return {
-        product_id: item.product.id,
-        quantity: item.quantity,
-        buyer_choices: {}
-      }
-    })
+    items: cartItems.value.map(item => ({
+      product_id:    item.product.id,
+      quantity:      item.quantity,
+      // FIX: ahora se envían las selecciones del comprador correctamente
+      buyer_choices: item.buyer_choices || {},
+    }))
   }
 
   try {
     const response = await axios.post(route('tenant.whatsapp-leads.store-cart-public'), payload)
-    
     if (response.data?.whatsapp_url) {
       window.location.href = response.data.whatsapp_url
-      // Limpiar el carrito después de mandar
       setTimeout(() => {
         clearCart()
         isCartOpen.value = false

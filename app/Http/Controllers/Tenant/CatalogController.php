@@ -46,7 +46,15 @@ class CatalogController extends Controller
             $query->where('stock', '>', 0);
         }
 
-        $products = $query->latest()->paginate(12)->withQueryString();
+        // Ordenamiento
+        match ($request->input('sort', 'newest')) {
+            'price_asc'  => $query->orderBy('price', 'asc'),
+            'price_desc' => $query->orderBy('price', 'desc'),
+            'on_sale'    => $query->orderByRaw('sale_price IS NOT NULL DESC, sale_price ASC'),
+            default      => $query->latest(), // newest
+        };
+
+        $products = $query->paginate(12)->withQueryString();
         $categories = Category::all(['id', 'name', 'slug']);
 
         // Rango de precios global para el slider
@@ -62,7 +70,7 @@ class CatalogController extends Controller
             'products'   => $products,
             'categories' => $categories,
             'priceRange' => $priceRange,
-            'filters'    => $request->only(['q', 'category', 'min_price', 'max_price', 'in_stock']),
+            'filters'    => $request->only(['q', 'category', 'min_price', 'max_price', 'in_stock', 'sort']),
             'adminPhone' => $adminPhone,
         ]);
     }
