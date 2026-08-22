@@ -13,7 +13,7 @@ class Product extends Model
 
     protected $fillable = [
         'category_id', 'sku', 'name', 'slug', 'description', 
-        'price', 'sale_price', 'show_price', 'stock', 'show_stock', 'status', 'images'
+        'price', 'sale_price', 'show_price', 'stock', 'show_stock', 'status', 'images', 'views', 'likes'
     ];
 
     protected $casts = [
@@ -23,6 +23,8 @@ class Product extends Model
         'show_stock' => 'boolean',
         'status' => 'boolean',
         'images' => 'array',
+        'views' => 'integer',
+        'likes' => 'integer',
     ];
 
     protected $appends = ['image_urls'];

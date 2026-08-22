@@ -7,11 +7,19 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class CatalogController extends Controller
 {
     public function index(Request $request)
     {
+        // Registrar visita general al catálogo (1 por sesión)
+        if (!session()->has('visited_catalog')) {
+            Cache::increment('catalog_visits_' . tenant('id'));
+            session()->put('visited_catalog', true);
+        }
+        $catalogVisits = Cache::get('catalog_visits_' . tenant('id'), 0);
+
         $query = Product::with('category')
             ->where('status', true);
 
@@ -67,11 +75,12 @@ class CatalogController extends Controller
         $adminPhone = User::first()?->phone;
 
         return inertia('Tenant/Catalog/Index', [
-            'products'   => $products,
-            'categories' => $categories,
-            'priceRange' => $priceRange,
-            'filters'    => $request->only(['q', 'category', 'min_price', 'max_price', 'in_stock', 'sort']),
-            'adminPhone' => $adminPhone,
+            'products'      => $products,
+            'categories'    => $categories,
+            'priceRange'    => $priceRange,
+            'filters'       => $request->only(['q', 'category', 'min_price', 'max_price', 'in_stock', 'sort']),
+            'adminPhone'    => $adminPhone,
+            'catalogVisits' => $catalogVisits,
         ]);
     }
 
@@ -84,6 +93,12 @@ class CatalogController extends Controller
             ->where('slug', $slug)
             ->where('status', true)
             ->firstOrFail();
+
+        // Registrar visualización del producto (1 por sesión)
+        if (!session()->has('viewed_product_' . $product->id)) {
+            $product->increment('views');
+            session()->put('viewed_product_' . $product->id, true);
+        }
 
         $adminPhone = User::first()?->phone;
 
@@ -106,5 +121,19 @@ class CatalogController extends Controller
             'adminPhone'      => $adminPhone,
             'buyerAttributes' => $buyerAttributes,
         ]);
+    }
+
+    public function toggleLike(Request $request, $id)
+    {
+        $product = Product::findOrFail($id);
+        $action = $request->input('action', 'like');
+
+        if ($action === 'like') {
+            $product->increment('likes');
+        } elseif ($action === 'unlike' && $product->likes > 0) {
+            $product->decrement('likes');
+        }
+
+        return response()->json(['likes' => $product->likes]);
     }
 }

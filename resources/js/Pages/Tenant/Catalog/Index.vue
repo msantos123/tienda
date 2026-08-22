@@ -21,8 +21,12 @@
             <div v-else class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0">
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
             </div>
-            <span class="font-bold text-white text-base truncate max-w-[150px] sm:max-w-xs">
+            <span class="font-bold text-white text-base truncate max-w-[150px] sm:max-w-xs flex flex-col leading-tight">
               {{ $page.props.tenant?.name || 'Catálogo' }}
+              <span v-if="props.catalogVisits !== undefined" class="text-[10px] font-normal text-slate-400 mt-0.5 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                {{ props.catalogVisits }} visitas
+              </span>
             </span>
           </div>
 
@@ -198,6 +202,22 @@
                   <span class="px-3 py-1 bg-slate-900/90 text-rose-400 text-xs font-bold rounded-full border border-rose-900">Agotado</span>
                 </div>
                 <div v-if="product.sale_price && product.show_price" class="absolute top-2 left-2 px-2 py-0.5 bg-rose-500 text-white text-[10px] font-bold rounded-full shadow">OFERTA</div>
+                
+                <!-- Insignias de Vistas y Me gusta -->
+                <div class="absolute top-2 right-2 flex flex-col gap-1.5 items-end">
+                  <div v-if="product.views > 0" class="px-1.5 py-0.5 bg-black/50 backdrop-blur-sm text-white text-[10px] font-semibold rounded-md flex items-center gap-1 shadow">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    {{ product.views }}
+                  </div>
+                  <button 
+                    @click.prevent="toggleLike(product)"
+                    class="w-7 h-7 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center transition shadow"
+                    :class="{'text-rose-500': isLiked(product.id), 'text-white': !isLiked(product.id)}"
+                    title="Me gusta"
+                  >
+                    <svg class="w-4 h-4" :fill="isLiked(product.id) ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                  </button>
+                </div>
               </a>
 
               <!-- Info -->
@@ -298,6 +318,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { Head } from '@inertiajs/vue3'
+import axios from 'axios'
 import CartDrawer from '../../../Components/Tenant/CartDrawer.vue'
 import { useCart } from '../../../composables/useCart'
 
@@ -307,6 +328,7 @@ const props = defineProps({
   priceRange: Object,
   filters: Object,
   adminPhone: String,
+  catalogVisits: Number,
 })
 
 const { addToCart, isCartOpen, totalItemsCount } = useCart()
@@ -446,8 +468,64 @@ const handleScroll = () => {
   lastScrollY = currentY
 }
 
+// ── Lógica de Me Gusta (Likes) ────────────────────────────────────────────────
+const likedProducts = ref(new Set())
+
+const loadLikedProducts = () => {
+  try {
+    const stored = localStorage.getItem('tenant_liked_products')
+    if (stored) {
+      likedProducts.value = new Set(JSON.parse(stored))
+    }
+  } catch (e) {
+    console.error('Error loading likes', e)
+  }
+}
+
+const saveLikedProducts = () => {
+  localStorage.setItem('tenant_liked_products', JSON.stringify([...likedProducts.value]))
+}
+
+const isLiked = (id) => likedProducts.value.has(id)
+
+const toggleLike = async (product) => {
+  const isCurrentlyLiked = isLiked(product.id)
+  const action = isCurrentlyLiked ? 'unlike' : 'like'
+  
+  // Optimistic update
+  if (isCurrentlyLiked) {
+    likedProducts.value.delete(product.id)
+    if (product.likes > 0) product.likes--
+  } else {
+    likedProducts.value.add(product.id)
+    product.likes++
+  }
+  
+  likedProducts.value = new Set(likedProducts.value) // force reactivity
+  saveLikedProducts()
+  
+  try {
+    const res = await axios.post(route('tenant.catalog.toggle-like', { id: product.id }), { action })
+    // Sincronizar el conteo real del server
+    product.likes = res.data.likes
+  } catch (e) {
+    console.error('Error toggling like:', e)
+    // Rollback en caso de error
+    if (isCurrentlyLiked) {
+      likedProducts.value.add(product.id)
+      product.likes++
+    } else {
+      likedProducts.value.delete(product.id)
+      if (product.likes > 0) product.likes--
+    }
+    likedProducts.value = new Set(likedProducts.value)
+    saveLikedProducts()
+  }
+}
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true })
+  loadLikedProducts()
   // Detectar navegaciones Inertia para mostrar skeleton
   router.on('start', (event) => {
     // Solo mostrar skeleton en navegaciones de filtro (no en "cargar más")

@@ -110,7 +110,17 @@
         <!-- Nombre y Precio -->
         <div>
           <h1 class="text-2xl font-extrabold text-white leading-tight">{{ product.name }}</h1>
-          <p class="text-xs text-slate-500 mt-1 font-mono">SKU: {{ product.sku }}</p>
+          <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-500 font-mono">
+            <span>SKU: {{ product.sku }}</span>
+            <span v-if="product.views > 0" class="flex items-center gap-1 bg-slate-800/50 px-2 py-0.5 rounded-md">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              {{ product.views }} vistas
+            </span>
+            <span v-if="product.likes > 0" class="flex items-center gap-1 bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded-md">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              {{ product.likes }}
+            </span>
+          </div>
 
           <div class="flex items-baseline gap-3 mt-4">
             <template v-if="product.show_price">
@@ -223,10 +233,20 @@
     <div class="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800/60 p-4">
       <div class="max-w-3xl mx-auto flex gap-2">
 
+        <!-- Me gusta -->
+        <button
+          @click="toggleLike"
+          class="w-12 h-12 flex items-center justify-center rounded-2xl transition shrink-0 shadow-lg border relative"
+          :class="isLiked ? 'bg-rose-500/20 border-rose-500/50 text-rose-500' : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300'"
+          title="Me gusta"
+        >
+          <svg class="w-6 h-6 transition-transform" :class="{'scale-110': isLiked}" :fill="isLiked ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+        </button>
+
         <!-- Compartir -->
         <button
           @click="shareProduct"
-          class="w-12 h-12 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl transition shrink-0 shadow-lg"
+          class="w-12 h-12 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl transition shrink-0 shadow-lg border border-slate-700"
           title="Compartir"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
@@ -290,6 +310,60 @@ const props = defineProps({
   product: Object,
   adminPhone: String,
   buyerAttributes: { type: Array, default: () => [] },
+})
+
+const { addToCart, isCartOpen, totalItemsCount } = useCart()
+
+// ── Lógica de Me Gusta (Likes) ────────────────────────────────────────────────
+const isLiked = ref(false)
+
+const loadLikeState = () => {
+  try {
+    const stored = localStorage.getItem('tenant_liked_products')
+    if (stored) {
+      const likedSet = new Set(JSON.parse(stored))
+      isLiked.value = likedSet.has(props.product.id)
+    }
+  } catch (e) {
+    console.error('Error loading likes', e)
+  }
+}
+
+const toggleLike = async () => {
+  const isCurrentlyLiked = isLiked.value
+  const action = isCurrentlyLiked ? 'unlike' : 'like'
+  
+  // Optimistic update
+  isLiked.value = !isCurrentlyLiked
+  if (isCurrentlyLiked) {
+    if (props.product.likes > 0) props.product.likes--
+  } else {
+    props.product.likes++
+  }
+  
+  // Update localStorage
+  try {
+    const stored = localStorage.getItem('tenant_liked_products')
+    let likedSet = stored ? new Set(JSON.parse(stored)) : new Set()
+    if (isLiked.value) likedSet.add(props.product.id)
+    else likedSet.delete(props.product.id)
+    localStorage.setItem('tenant_liked_products', JSON.stringify([...likedSet]))
+  } catch (e) {}
+  
+  try {
+    const res = await axios.post(route('tenant.catalog.toggle-like', { id: props.product.id }), { action })
+    props.product.likes = res.data.likes
+  } catch (e) {
+    console.error('Error toggling like:', e)
+    // Rollback
+    isLiked.value = isCurrentlyLiked
+    if (isCurrentlyLiked) props.product.likes++
+    else if (props.product.likes > 0) props.product.likes--
+  }
+}
+
+onMounted(() => {
+  loadLikeState()
 })
 
 // ── Selecciones del comprador ─────────────────────────────────────────────────
