@@ -99,6 +99,103 @@ class ProductController extends Controller
     }
 
     /**
+     * Store multiple product variants at once (bulk creation).
+     * All variants share: category, price, sale_price, description, stock, status, attributes.
+     * Each variant has its own: name, sku, slug, image.
+     */
+    public function storeBulk(Request $request)
+    {
+        $request->validate([
+            // Campos compartidos
+            'category_id'        => ['required', 'exists:categories,id'],
+            'description'        => ['nullable', 'string'],
+            'price'              => ['required', 'numeric', 'min:0'],
+            'sale_price'         => ['nullable', 'numeric', 'min:0'],
+            'show_price'         => ['required', 'boolean'],
+            'stock'              => ['required', 'integer', 'min:0'],
+            'show_stock'         => ['required', 'boolean'],
+            'status'             => ['required', 'boolean'],
+            'attributes'         => ['nullable', 'array'],
+            // Array de variantes
+            'variants'           => ['required', 'array', 'min:1'],
+            'variants.*.name'    => ['required', 'string', 'max:255'],
+            'variants.*.sku'     => ['required', 'string', 'max:255', 'distinct', 'unique:products,sku'],
+            'variants.*.slug'    => ['required', 'string', 'max:255', 'distinct', 'unique:products,slug'],
+            'variants.*.image'   => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ], [
+            'variants.*.name.required'   => 'Cada variante debe tener un nombre.',
+            'variants.*.sku.required'    => 'Cada variante debe tener un SKU.',
+            'variants.*.sku.unique'      => 'El SKU de la variante ya existe en el sistema.',
+            'variants.*.sku.distinct'    => 'Los SKUs de las variantes no pueden repetirse.',
+            'variants.*.slug.unique'     => 'El slug de la variante ya existe en el sistema.',
+            'variants.*.slug.distinct'   => 'Los slugs de las variantes no pueden repetirse.',
+            'variants.*.image.image'     => 'El archivo debe ser una imagen válida.',
+            'variants.*.image.max'       => 'La imagen no puede pesar más de 2MB.',
+        ]);
+
+        $sharedData = [
+            'category_id' => $request->category_id,
+            'description' => $request->description,
+            'price'       => $request->price,
+            'sale_price'  => $request->sale_price,
+            'show_price'  => filter_var($request->show_price, FILTER_VALIDATE_BOOLEAN),
+            'stock'       => $request->stock,
+            'show_stock'  => filter_var($request->show_stock, FILTER_VALIDATE_BOOLEAN),
+            'status'      => filter_var($request->status, FILTER_VALIDATE_BOOLEAN),
+        ];
+
+        $attributes = $request->input('attributes', []);
+        $variants   = $request->input('variants', []);
+
+        DB::beginTransaction();
+        try {
+            $created = 0;
+            foreach ($variants as $index => $variantData) {
+                // Subir imagen si viene
+                $images = [];
+                if ($request->hasFile("variants.{$index}.image")) {
+                    $path     = $request->file("variants.{$index}.image")->storePublicly('products');
+                    $images[] = $path;
+                }
+
+                $product = Product::create(array_merge($sharedData, [
+                    'name'   => $variantData['name'],
+                    'sku'    => $variantData['sku'],
+                    'slug'   => $variantData['slug'],
+                    'images' => !empty($images) ? $images : null,
+                ]));
+
+                // Atributos compartidos
+                if (!empty($attributes)) {
+                    $attrValues = [];
+                    foreach ($attributes as $attributeId => $value) {
+                        if ($value !== null && $value !== '') {
+                            $attrValues[] = [
+                                'attribute_id' => $attributeId,
+                                'value'        => is_array($value) ? json_encode($value) : (string) $value,
+                            ];
+                        }
+                    }
+                    if (count($attrValues) > 0) {
+                        $product->attributeValues()->createMany($attrValues);
+                    }
+                }
+
+                $created++;
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('tenant.products.index')
+                ->with('success', "{$created} producto(s) creado(s) exitosamente.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error al crear productos: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Product $product): Response

@@ -68,9 +68,11 @@ Route::middleware([
         Route::get('/products', [\App\Http\Controllers\Tenant\ProductController::class, 'index'])->name('tenant.products.index');
         Route::get('/products/create', [\App\Http\Controllers\Tenant\ProductController::class, 'create'])->name('tenant.products.create');
         Route::post('/products', [\App\Http\Controllers\Tenant\ProductController::class, 'store'])->name('tenant.products.store');
+        Route::post('/products/bulk', [\App\Http\Controllers\Tenant\ProductController::class, 'storeBulk'])->name('tenant.products.bulk');
         Route::get('/products/{product}/edit', [\App\Http\Controllers\Tenant\ProductController::class, 'edit'])->name('tenant.products.edit');
         Route::put('/products/{product}', [\App\Http\Controllers\Tenant\ProductController::class, 'update'])->name('tenant.products.update');
         Route::delete('/products/{product}', [\App\Http\Controllers\Tenant\ProductController::class, 'destroy'])->name('tenant.products.destroy');
+
 
         // Configuraciones
         Route::get('/settings/company', [\App\Http\Controllers\Tenant\CompanySettingsController::class, 'edit'])->name('tenant.settings.company.edit');
