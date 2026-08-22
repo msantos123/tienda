@@ -300,7 +300,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Head } from '@inertiajs/vue3'
 import axios from 'axios'
 import CartDrawer from '../../../Components/Tenant/CartDrawer.vue'
