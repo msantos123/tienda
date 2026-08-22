@@ -421,7 +421,6 @@ const handleTouchEnd = (e) => {
 }
 
 // ── Carrito ────────────────────────────────────────────────────────────────────
-const { addToCart, isCartOpen, totalItemsCount } = useCart()
 
 const addToCartAndNotify = () => {
   if (!validateBuyerSelections()) return
